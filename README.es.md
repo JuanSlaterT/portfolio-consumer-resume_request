@@ -89,3 +89,21 @@ Las pruebas usan dobles locales y no realizan llamadas a DynamoDB ni a Resend.
 
 Configura `index.handler` como handler de la Lambda. Activa las respuestas
 parciales de SQS incluyendo `ReportBatchItemFailures` en el event source mapping.
+
+## Despliegue
+
+`.github/workflows/deploy.yml` prueba y empaqueta la aplicación en cada push y
+pull request. Un push o ejecución manual desde `main` despliega el paquete en la
+Lambda existente mediante GitHub OIDC y el environment `production`.
+
+Configura estas variables no sensibles en el GitHub Environment `production`:
+
+| Variable | Valor |
+| --- | --- |
+| `AWS_ROLE_ARN` | `arn:aws:iam::506126099559:role/portfolio-github-deploy-resume-requests-consumer` |
+| `AWS_REGION` | `us-east-1` |
+| `LAMBDA_FUNCTION_NAME` | `portfolio-resume-requests-consumer` |
+
+GitHub Actions administra el paquete de despliegue y las actualizaciones de código
+posteriores. Terraform continúa administrando la configuración de Lambda, IAM,
+variables de entorno, el event source mapping de SQS, logs y código bootstrap.

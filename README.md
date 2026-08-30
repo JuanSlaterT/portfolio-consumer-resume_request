@@ -89,3 +89,21 @@ Tests use local fakes and do not call DynamoDB or Resend.
 
 Use `index.handler` as the Lambda handler. Enable SQS partial batch responses by
 including `ReportBatchItemFailures` in the event source mapping.
+
+## Deployment
+
+`.github/workflows/deploy.yml` tests and packages the application on pushes and
+pull requests. A push or manual run from `main` deploys the package to the
+existing Lambda through GitHub OIDC and the `production` environment.
+
+Configure these non-sensitive GitHub Environment variables in `production`:
+
+| Variable | Value |
+| --- | --- |
+| `AWS_ROLE_ARN` | `arn:aws:iam::506126099559:role/portfolio-github-deploy-resume-requests-consumer` |
+| `AWS_REGION` | `us-east-1` |
+| `LAMBDA_FUNCTION_NAME` | `portfolio-resume-requests-consumer` |
+
+GitHub Actions owns the deployment package and subsequent code updates. Terraform
+continues to own Lambda configuration, IAM, environment variables, the SQS event
+source mapping, logs, and bootstrap code.

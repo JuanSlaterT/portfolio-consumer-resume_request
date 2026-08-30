@@ -1,0 +1,152 @@
+name: Build and deploy AWS Lambda
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Test and package
+    runs-on: ubuntu-latest
+    outputs:
+      package_digest: ${{ steps.upload.outputs.artifact-digest }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check syntax
+        run: npm run check
+
+      - name: Run tests
+        run: npm test
+
+      - name: Keep production dependencies only
+        run: npm prune --omit=dev
+
+      - name: Build Lambda deployment package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p dist
+          cp index.mjs package.json package-lock.json dist/
+          cp -R src node_modules dist/
+
+          cd dist
+          zip -qr ../lambda.zip .
+
+      - name: Verify Lambda deployment package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          unzip -Z1 lambda.zip | grep -Fxq "index.mjs"
+          unzip -Z1 lambda.zip | grep -Fxq "src/handlers/resume-request-handler.mjs"
+          sha256sum lambda.zip
+
+      - name: Upload Lambda deployment package
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: resume-requests-consumer-lambda
+          path: lambda.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  deploy:
+    name: Deploy to production
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: resume-requests-consumer-production
+      cancel-in-progress: false
+    env:
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      LAMBDA_FUNCTION_NAME: ${{ vars.LAMBDA_FUNCTION_NAME }}
+      AWS_PAGER: ""
+
+    steps:
+      - name: Validate deployment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_variables=(
+            AWS_ROLE_ARN
+            AWS_REGION
+            LAMBDA_FUNCTION_NAME
+          )
+
+          for variable_name in "${required_variables[@]}"; do
+            if [[ -z "${!variable_name:-}" ]]; then
+              echo "Missing required value: ${variable_name}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Download Lambda deployment package
+        uses: actions/download-artifact@v8
+        with:
+          name: resume-requests-consumer-lambda
+          path: .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy Lambda code
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          revision_id="$(
+            aws lambda get-function-configuration \
+              --function-name "${LAMBDA_FUNCTION_NAME}" \
+              --query "RevisionId" \
+              --output text
+          )"
+
+          aws lambda update-function-code \
+            --function-name "${LAMBDA_FUNCTION_NAME}" \
+            --zip-file "fileb://lambda.zip" \
+            --revision-id "${revision_id}" \
+            --no-publish \
+            --query "{FunctionName:FunctionName,CodeSha256:CodeSha256,LastModified:LastModified}" \
+            --output table
+
+          aws lambda wait function-updated \
+            --function-name "${LAMBDA_FUNCTION_NAME}"
+
+      - name: Verify deployment
+        run: |
+          aws lambda get-function-configuration \
+            --function-name "${LAMBDA_FUNCTION_NAME}" \
+            --query "{Status:LastUpdateStatus,Reason:LastUpdateStatusReason,Runtime:Runtime,Architecture:Architectures[0],Handler:Handler,Modified:LastModified}" \
+            --output table
+
+          echo "Artifact digest: ${{ needs.build.outputs.package_digest }}"
