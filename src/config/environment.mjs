@@ -1,5 +1,5 @@
-const EMAIL_SENDER = "arevalobernaljuan@gmail.com";
-const EMAIL_RECIPIENT = "arevalobernaljuan@gmail.com";
+const EMAIL_SENDER = "noreply+arevalobernaljuan@gmail.com";
+const EMAIL_ADMIN_RECIPIENT = "arevalobernaljuan@gmail.com";
 const EMAIL_SUBJECT = "Alguien descargó tu CV.";
 
 function readRequiredValue(environment, name) {
@@ -22,7 +22,7 @@ export function loadConfig(environment = process.env) {
       apiSecret: readRequiredValue(environment, "MAILJET_SECRET_KEY"),
       apiUrl: readRequiredValue(environment, "MAILJET_API_URL"),
       from: EMAIL_SENDER,
-      recipient: EMAIL_RECIPIENT,
+      recipient: EMAIL_ADMIN_RECIPIENT,
       subject: EMAIL_SUBJECT,
       userAgent: "portfolio-resume-requests-consumer/1.0",
     }),
