@@ -3,7 +3,7 @@
 [English](README.md) | Español
 
 Lambda de AWS que consume solicitudes desde SQS, las guarda en DynamoDB y envía
-una notificación mediante Mailjet después de persistir cada registro.
+una notificación mediante SMTP de Gmail después de persistir cada registro.
 
 ## Responsabilidades y límites
 
@@ -12,7 +12,7 @@ Este consumidor se encarga de:
 - deserializar los mensajes de solicitudes recibidos desde SQS;
 - guardar cada solicitud de forma condicional en DynamoDB;
 - generar en formato ISO-8601 la fecha de persistencia;
-- notificar al destinatario configurado mediante Mailjet;
+- notificar al destinatario configurado mediante SMTP de Gmail;
 - devolver fallos parciales para que SQS reintente solamente los registros fallidos.
 
 El productor es responsable del contrato y la validación del mensaje. La creación
@@ -27,7 +27,7 @@ la Lambda pertenecen a la infraestructura y están fuera de este repositorio.
 ├── src/
 │   ├── clients/
 │   │   ├── aws/                    # Integración DynamoDB y errores AWS
-│   │   └── mailjet/                # Integración de correo y errores Mailjet
+│   │   └── gmail/                  # Integración SMTP de Gmail
 │   ├── config/                     # Configuración mediante variables de entorno
 │   ├── handlers/                   # Adaptador de Lambda para SQS
 │   ├── messages/                   # Contrato del mensaje del productor
@@ -63,16 +63,15 @@ recibe un nuevo `timestamp` ISO-8601 generado por la Lambda al persistir el íte
 | Variable | Requerida | Valor predeterminado | Sensible | Uso |
 | --- | --- | --- | --- | --- |
 | `DYNAMODB_TABLE_NAME` | Sí | Ninguno | No | Tabla DynamoDB destino |
-| `MAILJET_API_KEY` | Sí | Ninguno | Sí | API key pública de Mailjet |
-| `MAILJET_SECRET_KEY` | Sí | Ninguno | Sí | API key secreta de Mailjet |
-| `MAILJET_API_URL` | Sí | Ninguno | Sí | Endpoint de Send API de Mailjet |
+| `GMAIL_SMTP_APP_PASSWORD` | Sí | Ninguno | Sí | Contraseña de aplicación de Google para autenticación SMTP |
 
-Guarda las credenciales de Mailjet y `MAILJET_API_URL` mediante configuración
-cifrada de la Lambda o un gestor de secretos. Nunca subas credenciales reales al
-repositorio.
+Guarda `GMAIL_SMTP_APP_PASSWORD` mediante configuración cifrada de la Lambda o un
+gestor de secretos. Nunca la subas al repositorio ni uses la contraseña normal de
+la cuenta de Google.
 
-El remitente, destinatario y asunto son constantes de la aplicación definidas en
-`src/config/environment.mjs`. El remitente debe estar validado en Mailjet.
+El host SMTP (`smtp.gmail.com`), el puerto SSL (`465`), la cuenta, el remitente,
+el destinatario y el asunto son constantes definidas en
+`src/config/environment.mjs`.
 
 ## Verificación local
 
@@ -84,7 +83,7 @@ npm run check
 npm test
 ```
 
-Las pruebas usan dobles locales y no realizan llamadas a DynamoDB ni a Mailjet.
+Las pruebas usan dobles locales y no realizan llamadas a DynamoDB ni a Gmail.
 
 ## Configuración de Lambda
 
