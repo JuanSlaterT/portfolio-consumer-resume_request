@@ -9,6 +9,7 @@ const logger = { info() {} };
 
 test("stores the request before sending the notification", async () => {
   const calls = [];
+  let emailContext;
   const service = new ResumeRequestService({
     resumeRequestRepository: {
       store: async () => {
@@ -17,8 +18,9 @@ test("stores the request before sending the notification", async () => {
       },
     },
     emailClient: {
-      sendStoredNotification: async () => {
+      sendStoredNotification: async (_resumeRequest, context) => {
         calls.push("email");
+        emailContext = context;
         return "email-123";
       },
     },
@@ -28,6 +30,9 @@ test("stores the request before sending the notification", async () => {
   const result = await service.process(resumeRequest, { messageId: "message-1" });
 
   assert.deepEqual(calls, ["store", "email"]);
+  assert.deepEqual(emailContext, {
+    persistedAt: "2026-08-30T20:44:00.000Z",
+  });
   assert.deepEqual(result, {
     requestId: "request-123",
     persistedAt: "2026-08-30T20:44:00.000Z",

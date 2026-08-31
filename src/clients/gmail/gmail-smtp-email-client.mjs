@@ -1,3 +1,5 @@
+import { createResumeRequestNotificationEmail } from "../../templates/resume-request-notification-email.mjs";
+
 export class GmailSmtpEmailClient {
   constructor({ transporter, from, recipient, subject }) {
     this.transporter = transporter;
@@ -6,13 +8,17 @@ export class GmailSmtpEmailClient {
     this.subject = subject;
   }
 
-  async sendStoredNotification(resumeRequest) {
+  async sendStoredNotification(resumeRequest, { persistedAt = null } = {}) {
+    const content = createResumeRequestNotificationEmail(resumeRequest, {
+      persistedAt,
+    });
+
     const result = await this.transporter.sendMail({
       from: this.from,
       to: this.recipient,
       subject: this.subject,
-      text: "Se guardó una nueva solicitud de descarga de tu CV.",
-      html: "<p>Se guardó una nueva solicitud de descarga de tu <strong>CV</strong>.</p>",
+      text: content.text,
+      html: content.html,
       headers: {
         "X-Resume-Request-Id": resumeRequest.requestId,
       },

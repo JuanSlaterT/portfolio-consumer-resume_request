@@ -31,7 +31,8 @@ source mapping live outside this repository.
 │   ├── config/                     # Environment-backed configuration
 │   ├── handlers/                   # SQS Lambda adapter
 │   ├── messages/                   # Producer message contract
-│   └── services/                   # Consumer orchestration
+│   ├── services/                   # Consumer orchestration
+│   └── templates/                  # Email-safe notification templates
 ├── test/                           # Unit tests mirroring src responsibilities
 ├── .env.example                    # Local configuration template
 ├── index.mjs                       # Lambda composition root (index.handler)

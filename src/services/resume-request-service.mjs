@@ -29,7 +29,9 @@ export class ResumeRequestService {
       });
     }
 
-    const emailId = await this.emailClient.sendStoredNotification(resumeRequest);
+    const emailId = await this.emailClient.sendStoredNotification(resumeRequest, {
+      persistedAt,
+    });
 
     this.logger.info("Notification email sent", {
       messageId,

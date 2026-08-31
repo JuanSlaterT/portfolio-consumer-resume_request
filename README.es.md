@@ -31,7 +31,8 @@ la Lambda pertenecen a la infraestructura y están fuera de este repositorio.
 │   ├── config/                     # Configuración mediante variables de entorno
 │   ├── handlers/                   # Adaptador de Lambda para SQS
 │   ├── messages/                   # Contrato del mensaje del productor
-│   └── services/                   # Orquestación del consumidor
+│   ├── services/                   # Orquestación del consumidor
+│   └── templates/                  # Plantillas compatibles con clientes de correo
 ├── test/                           # Pruebas unitarias que reflejan src
 ├── .env.example                    # Plantilla de configuración local
 ├── index.mjs                       # Composición de la Lambda (index.handler)
