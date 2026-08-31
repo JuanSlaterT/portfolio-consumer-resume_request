@@ -12,7 +12,8 @@ export function createSpanishResumeDeliveryEmail({ cloudfrontUrl }) {
     preheader: "Gracias por tu interés. Ya puedes descargar el CV de Juan Arévalo.",
     badge: "CV disponible",
     eyebrow: "Gracias por tu interés",
-    headline: "Mi CV está listo para ti.",
+    headline: "Mi CV está",
+    headlineAccent: "listo para ti.",
     description:
       "Aquí encontrarás un resumen de mi experiencia, proyectos y habilidades en desarrollo de software y arquitectura cloud.",
     fileLabel: "Documento en español",

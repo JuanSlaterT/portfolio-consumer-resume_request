@@ -32,6 +32,24 @@ test("renders the English resume delivery template", () => {
   assert.match(content.text, /English document: RESUME_JUAN_AREVALO\.pdf/);
 });
 
+test("uses the brutalist editorial visual system in every delivery language", () => {
+  const templates = [
+    createSpanishResumeDeliveryEmail({ cloudfrontUrl }),
+    createEnglishResumeDeliveryEmail({ cloudfrontUrl }),
+  ];
+
+  for (const content of templates) {
+    assert.match(content.html, /background-color:#F1EEE5/);
+    assert.match(content.html, /background-color:#FF4D00/);
+    assert.match(content.html, /background-color:#D9FF43/);
+    assert.match(content.html, /background-color:#2457FF/);
+    assert.match(content.html, /border:2px solid #171713/);
+    assert.match(content.html, /box-shadow:4px 4px 0 #FF4D00/);
+    assert.match(content.html, /Ref\. CV-02/);
+    assert.doesNotMatch(content.html, /linear-gradient|border-radius/i);
+  }
+});
+
 test("requires HTTPS for the CloudFront download URL", () => {
   assert.throws(
     () =>

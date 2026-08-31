@@ -23,6 +23,25 @@ test("renders the persisted SQS request in HTML and plain text", () => {
   assert.match(content.text, /La información de la solicitud fue confirmada/);
 });
 
+test("uses the brutalist editorial visual system", () => {
+  const content = createResumeRequestNotificationEmail({
+    requestId: "request-01",
+    email: "visitor@example.com",
+    requestedAt: "2026-08-30 15:43:35",
+    ipHash: "abc123hash",
+    subscribeToUpdates: true,
+  });
+
+  assert.match(content.html, /background-color:#F1EEE5/);
+  assert.match(content.html, /background-color:#FF4D00/);
+  assert.match(content.html, /background-color:#D9FF43/);
+  assert.match(content.html, /background-color:#2457FF/);
+  assert.match(content.html, /border:2px solid #171713/);
+  assert.match(content.html, /box-shadow:8px 8px 0 #FF4D00/);
+  assert.match(content.html, /Ref\. CV-01/);
+  assert.doesNotMatch(content.html, /linear-gradient|border-radius/i);
+});
+
 test("escapes values received from SQS before inserting them into HTML", () => {
   const content = createResumeRequestNotificationEmail({
     requestId: '<script>alert("request")</script>',
