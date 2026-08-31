@@ -81,7 +81,7 @@ export function createResumeRequestNotificationEmail(
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                   <tr>
                     <td valign="middle">
-                      <span style="display:inline-block; width:32px; height:32px; line-height:32px; text-align:center; border-radius:9px; background-color:#10b981; color:#020617; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:13px; font-weight:800;">JB</span>
+                      <span style="display:inline-block; width:32px; height:32px; line-height:32px; text-align:center; border-radius:9px; background-color:#10b981; color:#020617; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:13px; font-weight:800;">JA</span>
                       <span style="padding-left:10px; color:#cbd5e1; font-size:13px; font-weight:700; letter-spacing:0.04em;">PORTFOLIO SYSTEM</span>
                     </td>
                     <td align="right" valign="middle">

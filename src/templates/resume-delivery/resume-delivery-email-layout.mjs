@@ -87,7 +87,7 @@ export function createResumeDeliveryEmailLayout({
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                   <tr>
                     <td valign="middle">
-                      <span style="display:inline-block; width:34px; height:34px; line-height:34px; text-align:center; border-radius:9px; background-color:#10b981; background-image:linear-gradient(135deg,#10b981,#06b6d4); color:#020617; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:13px; font-weight:800;">JB</span>
+                      <span style="display:inline-block; width:34px; height:34px; line-height:34px; text-align:center; border-radius:9px; background-color:#10b981; background-image:linear-gradient(135deg,#10b981,#06b6d4); color:#020617; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:13px; font-weight:800;">JA</span>
                       <span style="padding-left:10px; color:#cbd5e1; font-size:13px; font-weight:700; letter-spacing:0.04em;">JUAN ARÉVALO</span>
                     </td>
                     <td align="right" valign="middle">
