@@ -1,4 +1,17 @@
 import { DuplicateResumeRequestError } from "../clients/aws/exceptions/duplicate-resume-request-error.mjs";
+import { ResumeRequestProcessingError } from "../exceptions/resume-request-processing-error.mjs";
+
+const PROCESSING_STAGE = Object.freeze({
+  DYNAMODB_PERSISTENCE: "DYNAMODB_PERSISTENCE",
+  ADMIN_NOTIFICATION: "ADMIN_NOTIFICATION",
+  RESUME_DELIVERY: "RESUME_DELIVERY",
+});
+
+function wrapProcessingError(stage, error) {
+  return error instanceof ResumeRequestProcessingError
+    ? error
+    : new ResumeRequestProcessingError(stage, error);
+}
 
 export class ResumeRequestService {
   constructor({ resumeRequestRepository, emailClient, logger = console }) {
@@ -20,7 +33,7 @@ export class ResumeRequestService {
       });
     } catch (error) {
       if (!(error instanceof DuplicateResumeRequestError)) {
-        throw error;
+        throw wrapProcessingError(PROCESSING_STAGE.DYNAMODB_PERSISTENCE, error);
       }
 
       this.logger.info("Resume request already stored", {
@@ -29,10 +42,18 @@ export class ResumeRequestService {
       });
     }
 
-    const notificationEmailId =
-      await this.emailClient.sendStoredNotification(resumeRequest, {
-        persistedAt,
-      });
+    let notificationEmailId;
+
+    try {
+      notificationEmailId = await this.emailClient.sendStoredNotification(
+        resumeRequest,
+        {
+          persistedAt,
+        },
+      );
+    } catch (error) {
+      throw wrapProcessingError(PROCESSING_STAGE.ADMIN_NOTIFICATION, error);
+    }
 
     this.logger.info("Administrative notification email sent", {
       messageId,
@@ -40,8 +61,13 @@ export class ResumeRequestService {
       emailId: notificationEmailId,
     });
 
-    const deliveryEmailId =
-      await this.emailClient.sendResumeDelivery(resumeRequest);
+    let deliveryEmailId;
+
+    try {
+      deliveryEmailId = await this.emailClient.sendResumeDelivery(resumeRequest);
+    } catch (error) {
+      throw wrapProcessingError(PROCESSING_STAGE.RESUME_DELIVERY, error);
+    }
 
     this.logger.info("Resume delivery email sent", {
       messageId,

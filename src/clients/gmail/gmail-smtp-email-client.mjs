@@ -1,6 +1,7 @@
 import { createResumeRequestNotificationEmail } from "../../templates/resume-request-notification-email.mjs";
 import { createEnglishResumeDeliveryEmail } from "../../templates/resume-delivery/resume-delivery-email-en.mjs";
 import { createSpanishResumeDeliveryEmail } from "../../templates/resume-delivery/resume-delivery-email-es.mjs";
+import { createResumeRequestFailureEmail } from "../../templates/resume-request-failure-email.mjs";
 
 const DELIVERY_TEMPLATE_BY_LANGUAGE = Object.freeze({
   en: createEnglishResumeDeliveryEmail,
@@ -52,6 +53,25 @@ export class GmailSmtpEmailClient {
       headers: {
         "X-Resume-Request-Id": resumeRequest.requestId,
         "X-Resume-Language": resumeRequest.language,
+      },
+    });
+
+    return result.messageId;
+  }
+
+  async sendProcessingFailure(report) {
+    const content = createResumeRequestFailureEmail(report);
+    const result = await this.transporter.sendMail({
+      from: this.from,
+      to: this.recipient,
+      subject: content.subject,
+      text: content.text,
+      html: content.html,
+      headers: {
+        "X-SQS-Message-Id": report.messageId,
+        "X-Lambda-Request-Id": report.awsRequestId,
+        "X-Resume-Failure-Stage": report.stage,
+        "X-SQS-Receive-Count": String(report.receiveCount),
       },
     });
 

@@ -78,10 +78,11 @@ test("retries both emails when the request is already stored", async () => {
 
 test("does not send emails when the database write fails", async () => {
   const calls = [];
+  const providerError = new Error("database unavailable");
   const service = new ResumeRequestService({
     resumeRequestRepository: {
       store: async () => {
-        throw new Error("database unavailable");
+        throw providerError;
       },
     },
     emailClient: {
@@ -97,20 +98,22 @@ test("does not send emails when the database write fails", async () => {
 
   await assert.rejects(
     () => service.process(resumeRequest, { messageId: "message-1" }),
-    /database unavailable/,
+    (error) =>
+      error.stage === "DYNAMODB_PERSISTENCE" && error.cause === providerError,
   );
   assert.deepEqual(calls, []);
 });
 
 test("does not deliver the resume when the administrative notification fails", async () => {
   let deliveryCalls = 0;
+  const providerError = new Error("administrative email unavailable");
   const service = new ResumeRequestService({
     resumeRequestRepository: {
       store: async () => "2026-08-30T20:44:00.000Z",
     },
     emailClient: {
       sendStoredNotification: async () => {
-        throw new Error("administrative email unavailable");
+        throw providerError;
       },
       sendResumeDelivery: async () => {
         deliveryCalls += 1;
@@ -121,7 +124,29 @@ test("does not deliver the resume when the administrative notification fails", a
 
   await assert.rejects(
     () => service.process(resumeRequest, { messageId: "message-1" }),
-    /administrative email unavailable/,
+    (error) =>
+      error.stage === "ADMIN_NOTIFICATION" && error.cause === providerError,
   );
   assert.equal(deliveryCalls, 0);
+});
+
+test("identifies failures while delivering the resume", async () => {
+  const providerError = new Error("delivery email unavailable");
+  const service = new ResumeRequestService({
+    resumeRequestRepository: {
+      store: async () => "2026-08-30T20:44:00.000Z",
+    },
+    emailClient: {
+      sendStoredNotification: async () => "notification-email-123",
+      sendResumeDelivery: async () => {
+        throw providerError;
+      },
+    },
+    logger,
+  });
+
+  await assert.rejects(
+    () => service.process(resumeRequest, { messageId: "message-1" }),
+    (error) => error.stage === "RESUME_DELIVERY" && error.cause === providerError,
+  );
 });

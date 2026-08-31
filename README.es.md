@@ -15,6 +15,8 @@ Este consumidor se encarga de:
 - generar en formato ISO-8601 la fecha de persistencia;
 - notificar al administrador mediante SMTP de Gmail;
 - entregar el enlace localizado del CV al correo recibido desde SQS;
+- registrar un diagnóstico estructurado por cada intento fallido;
+- enviar al administrador un email técnico en el primer fallo del mensaje;
 - devolver fallos parciales para que SQS reintente solamente los registros fallidos.
 
 El productor es responsable del contrato y la validación del mensaje. La creación
@@ -87,6 +89,25 @@ La entrega del CV se localiza utilizando el campo `language` de SQS:
 
 El procesamiento es secuencial: persistencia en DynamoDB, notificación
 administrativa y finalmente entrega del CV al solicitante.
+
+## Diagnóstico de fallos y DLQ
+
+Los errores se clasifican por etapa: `SQS_MESSAGE_PARSE`,
+`DYNAMODB_PERSISTENCE`, `ADMIN_NOTIFICATION` o `RESUME_DELIVERY`. Cada fallo
+genera un log estructurado con la excepción y su cadena de causas, stack traces,
+IDs de SQS y Lambda, intento, ARN de origen, región, ubicación del log de
+CloudWatch, tiempo restante y una captura del payload limitada a 4 KB.
+
+En el primer intento fallido se envía ese diagnóstico al destinatario
+administrativo mediante Gmail SMTP. Si el propio email de diagnóstico falla, el
+error SMTP queda registrado y nunca reemplaza el fallo original.
+
+El mensaje siempre se incluye en `batchItemFailures`, por lo que SQS conserva los
+reintentos y el redrive configurado. La DLQ recibe el mensaje original: el
+redrive nativo no permite que Lambda adjunte el stack o los logs al mensaje antes
+de moverlo. El email entrega esa información enriquecida de antemano y los
+intentos posteriores continúan quedando registrados en CloudWatch sin generar
+correos duplicados.
 
 ## Verificación local
 

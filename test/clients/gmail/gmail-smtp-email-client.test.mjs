@@ -12,6 +12,34 @@ const resumeRequest = {
   subscribeToUpdates: true,
 };
 
+const failureReport = {
+  failedAt: "2026-08-31T12:00:00.000Z",
+  stage: "DYNAMODB_PERSISTENCE",
+  status: "RETRY_PENDING",
+  messageId: "sqs-message-123",
+  requestId: "request-123",
+  receiveCount: 1,
+  awsRequestId: "lambda-request-456",
+  functionName: "resume-consumer",
+  functionVersion: "$LATEST",
+  awsRegion: "us-east-1",
+  eventSourceArn: "arn:aws:sqs:us-east-1:123:resume-requests",
+  logGroupName: "/aws/lambda/resume-consumer",
+  logStreamName: "stream-1",
+  remainingTimeInMillis: 25_000,
+  payloadSnapshot: '{"requestId":"request-123"}',
+  exception: {
+    name: "Error",
+    message: "database unavailable",
+    code: "ECONNRESET",
+    statusCode: null,
+    responseCode: null,
+    retryable: "true",
+    stack: "Error: database unavailable\n    at process",
+    cause: null,
+  },
+};
+
 function createClient(transporter) {
   return new GmailSmtpEmailClient({
     transporter,
@@ -126,4 +154,30 @@ test("propagates SMTP errors so SQS can retry the record", async () => {
     () => client.sendStoredNotification(resumeRequest),
     (error) => error === smtpError,
   );
+});
+
+test("sends a detailed processing failure to the administrative recipient", async () => {
+  let message;
+  const client = createClient({
+    sendMail: async (mail) => {
+      message = mail;
+      return { messageId: "failure-email@gmail.com" };
+    },
+  });
+
+  const emailId = await client.sendProcessingFailure(failureReport);
+
+  assert.equal(emailId, "failure-email@gmail.com");
+  assert.equal(message.to, "recipient+portfolio@gmail.com");
+  assert.match(message.subject, /^\[ERROR\] SQS\/Lambda/);
+  assert.equal(message.headers["X-SQS-Message-Id"], "sqs-message-123");
+  assert.equal(message.headers["X-Lambda-Request-Id"], "lambda-request-456");
+  assert.equal(
+    message.headers["X-Resume-Failure-Stage"],
+    "DYNAMODB_PERSISTENCE",
+  );
+  assert.equal(message.headers["X-SQS-Receive-Count"], "1");
+  assert.match(message.text, /database unavailable/);
+  assert.match(message.html, /DYNAMODB_PERSISTENCE/);
+  assert.match(message.html, /Retry \/ DLQ preservado/);
 });

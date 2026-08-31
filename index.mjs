@@ -35,4 +35,7 @@ const resumeRequestService = new ResumeRequestService({
   emailClient,
 });
 
-export const handler = createResumeRequestHandler({ resumeRequestService });
+export const handler = createResumeRequestHandler({
+  resumeRequestService,
+  failureEmailClient: emailClient,
+});

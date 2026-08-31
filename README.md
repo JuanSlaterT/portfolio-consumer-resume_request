@@ -15,6 +15,8 @@ This consumer owns:
 - generating the persistence timestamp in ISO-8601 format;
 - notifying the administrator through Gmail SMTP;
 - delivering the localized resume link to the requester email received from SQS;
+- writing a structured diagnostic log for every failed attempt;
+- emailing the administrator a technical diagnostic on the message's first failure;
 - returning partial batch failures so SQS retries only failed records.
 
 The producer owns the message schema and validation. Infrastructure provisioning,
@@ -86,6 +88,24 @@ Resume delivery is localized using the SQS `language` field:
 
 Processing is sequential: DynamoDB persistence, administrative notification,
 and finally resume delivery to the requester.
+
+## Failure diagnostics and DLQ behavior
+
+Errors are classified as `SQS_MESSAGE_PARSE`, `DYNAMODB_PERSISTENCE`,
+`ADMIN_NOTIFICATION`, or `RESUME_DELIVERY`. Every failure writes a structured log
+containing the exception and cause chain, stack traces, SQS and Lambda IDs,
+receive count, source ARN, region, CloudWatch log location, remaining execution
+time, and a payload snapshot limited to 4 KB.
+
+On the message's first failed attempt, that diagnostic is emailed to the
+administrative recipient through Gmail SMTP. If the diagnostic email itself
+fails, the SMTP exception is logged without replacing the original failure.
+
+The record is always included in `batchItemFailures`, preserving SQS retries and
+the configured redrive policy. Native redrive sends the original record to the
+DLQ and does not let Lambda append stack traces or logs before the move. The
+email supplies that enriched context in advance, while later attempts continue
+to be logged without producing duplicate emails.
 
 ## Local verification
 
