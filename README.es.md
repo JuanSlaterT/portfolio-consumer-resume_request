@@ -3,7 +3,8 @@
 [English](README.md) | Español
 
 Lambda de AWS que consume solicitudes desde SQS, las guarda en DynamoDB y envía
-una notificación mediante SMTP de Gmail después de persistir cada registro.
+una notificación y un correo localizado con el enlace del CV mediante SMTP de
+Gmail después de persistir cada registro.
 
 ## Responsabilidades y límites
 
@@ -12,7 +13,8 @@ Este consumidor se encarga de:
 - deserializar los mensajes de solicitudes recibidos desde SQS;
 - guardar cada solicitud de forma condicional en DynamoDB;
 - generar en formato ISO-8601 la fecha de persistencia;
-- notificar al destinatario configurado mediante SMTP de Gmail;
+- notificar al administrador mediante SMTP de Gmail;
+- entregar el enlace localizado del CV al correo recibido desde SQS;
 - devolver fallos parciales para que SQS reintente solamente los registros fallidos.
 
 El productor es responsable del contrato y la validación del mensaje. La creación
@@ -51,6 +53,7 @@ procesamiento en `services`.
   "requestedAt": "2026-08-30 15:43:35",
   "ipHash": "hash-sha-256",
   "email": "user@example.com",
+  "language": "es",
   "subscribeToUpdates": true,
   "timestamp": 1788122615000
 }
@@ -65,6 +68,7 @@ recibe un nuevo `timestamp` ISO-8601 generado por la Lambda al persistir el íte
 | --- | --- | --- | --- | --- |
 | `DYNAMODB_TABLE_NAME` | Sí | Ninguno | No | Tabla DynamoDB destino |
 | `GMAIL_SMTP_APP_PASSWORD` | Sí | Ninguno | Sí | Contraseña de aplicación de Google para autenticación SMTP |
+| `CLOUDFRONT_URL` | Sí | Ninguno | No | URL base que aloja los archivos PDF del CV |
 
 Guarda `GMAIL_SMTP_APP_PASSWORD` mediante configuración cifrada de la Lambda o un
 gestor de secretos. Nunca la subas al repositorio ni uses la contraseña normal de
@@ -73,6 +77,16 @@ la cuenta de Google.
 El host SMTP (`smtp.gmail.com`), el puerto SSL (`465`), la cuenta, el remitente,
 el destinatario y el asunto son constantes definidas en
 `src/config/environment.mjs`.
+
+La entrega del CV se localiza utilizando el campo `language` de SQS:
+
+| Idioma | Botón | Archivo de CloudFront |
+| --- | --- | --- |
+| `es` | Descargar CV | `CV_JUAN_AREVALO.pdf` |
+| `en` | Download Resume | `RESUME_JUAN_AREVALO.pdf` |
+
+El procesamiento es secuencial: persistencia en DynamoDB, notificación
+administrativa y finalmente entrega del CV al solicitante.
 
 ## Verificación local
 

@@ -26,6 +26,7 @@ const smtpTransporter = nodemailer.createTransport({
 
 const emailClient = new GmailSmtpEmailClient({
   transporter: smtpTransporter,
+  cloudfrontUrl: config.cloudfront.url,
   ...config.notification,
 });
 

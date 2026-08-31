@@ -27,6 +27,9 @@ export function loadConfig(environment = process.env) {
       user: GMAIL_SMTP_USER,
       appPassword: readRequiredValue(environment, "GMAIL_SMTP_APP_PASSWORD"),
     }),
+    cloudfront: Object.freeze({
+      url: readRequiredValue(environment, "CLOUDFRONT_URL"),
+    }),
     notification: Object.freeze({
       from: EMAIL_SENDER,
       recipient: EMAIL_ADMIN_RECIPIENT,

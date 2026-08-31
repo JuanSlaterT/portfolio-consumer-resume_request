@@ -7,6 +7,7 @@ test("loads required values and notification defaults", () => {
   const config = loadConfig({
     DYNAMODB_TABLE_NAME: "resume-requests",
     GMAIL_SMTP_APP_PASSWORD: "test-app-password",
+    CLOUDFRONT_URL: "https://assets.example.com",
   });
 
   assert.equal(config.dynamodb.tableName, "resume-requests");
@@ -15,6 +16,7 @@ test("loads required values and notification defaults", () => {
   assert.equal(config.gmailSmtp.secure, true);
   assert.equal(config.gmailSmtp.user, "arevalobernaljuan@gmail.com");
   assert.equal(config.gmailSmtp.appPassword, "test-app-password");
+  assert.equal(config.cloudfront.url, "https://assets.example.com");
   assert.equal(config.notification.from, "arevalobernaljuan@gmail.com");
   assert.equal(
     config.notification.recipient,
@@ -30,5 +32,16 @@ test("fails fast when the Gmail app password is absent", () => {
         DYNAMODB_TABLE_NAME: "resume-requests",
       }),
     /GMAIL_SMTP_APP_PASSWORD is required/,
+  );
+});
+
+test("fails fast when the CloudFront URL is absent", () => {
+  assert.throws(
+    () =>
+      loadConfig({
+        DYNAMODB_TABLE_NAME: "resume-requests",
+        GMAIL_SMTP_APP_PASSWORD: "test-app-password",
+      }),
+    /CLOUDFRONT_URL is required/,
   );
 });

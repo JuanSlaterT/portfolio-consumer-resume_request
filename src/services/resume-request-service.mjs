@@ -29,20 +29,32 @@ export class ResumeRequestService {
       });
     }
 
-    const emailId = await this.emailClient.sendStoredNotification(resumeRequest, {
-      persistedAt,
-    });
+    const notificationEmailId =
+      await this.emailClient.sendStoredNotification(resumeRequest, {
+        persistedAt,
+      });
 
-    this.logger.info("Notification email sent", {
+    this.logger.info("Administrative notification email sent", {
       messageId,
       requestId: resumeRequest.requestId,
-      emailId,
+      emailId: notificationEmailId,
+    });
+
+    const deliveryEmailId =
+      await this.emailClient.sendResumeDelivery(resumeRequest);
+
+    this.logger.info("Resume delivery email sent", {
+      messageId,
+      requestId: resumeRequest.requestId,
+      language: resumeRequest.language,
+      emailId: deliveryEmailId,
     });
 
     return Object.freeze({
       requestId: resumeRequest.requestId,
       persistedAt,
-      emailId,
+      notificationEmailId,
+      deliveryEmailId,
     });
   }
 }

@@ -16,6 +16,7 @@ export function parseResumeRequest(body) {
     requestedAt: payload.requestedAt,
     ipHash: payload.ipHash,
     email: payload.email,
+    language: payload.language,
     subscribeToUpdates: payload.subscribeToUpdates,
     timestamp: payload.timestamp,
   });

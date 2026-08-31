@@ -9,6 +9,7 @@ test("parses the resume request producer contract", () => {
     requestedAt: "2026-08-30 15:43:35",
     ipHash: "hash-recibido",
     email: "user@example.com",
+    language: "es",
     subscribeToUpdates: true,
     timestamp: 1788122615000,
   });

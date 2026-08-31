@@ -9,6 +9,7 @@ const resumeRequest = {
   requestedAt: "2026-08-30 15:43:35",
   ipHash: "hash-recibido",
   email: "user@example.com",
+  language: "es",
   subscribeToUpdates: true,
   timestamp: 1788122615000,
 };
@@ -35,6 +36,7 @@ test("stores the DynamoDB item with a Lambda-generated ISO timestamp", async () 
       email: { S: resumeRequest.email },
       requestedAt: { S: resumeRequest.requestedAt },
       ipHash: { S: resumeRequest.ipHash },
+      language: { S: resumeRequest.language },
       subscribeToUpdates: { BOOL: true },
       timestamp: { S: "2026-08-30T20:44:00.000Z" },
     },

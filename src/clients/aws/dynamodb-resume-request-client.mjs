@@ -21,6 +21,7 @@ export class DynamoDbResumeRequestClient {
             email: { S: resumeRequest.email },
             requestedAt: { S: resumeRequest.requestedAt },
             ipHash: { S: resumeRequest.ipHash },
+            language: { S: resumeRequest.language },
             subscribeToUpdates: { BOOL: resumeRequest.subscribeToUpdates },
             timestamp: { S: persistedAt },
           },
