@@ -1,4 +1,4 @@
-const EMAIL_SENDER = "resend+arevalobernaljuan@gmail.com";
+const EMAIL_SENDER = "arevalobernaljuan@gmail.com";
 const EMAIL_RECIPIENT = "arevalobernaljuan@gmail.com";
 const EMAIL_SUBJECT = "Alguien descargó tu CV.";
 
@@ -17,9 +17,10 @@ export function loadConfig(environment = process.env) {
     dynamodb: Object.freeze({
       tableName: readRequiredValue(environment, "DYNAMODB_TABLE_NAME"),
     }),
-    resend: Object.freeze({
-      apiKey: readRequiredValue(environment, "RESEND_API_KEY"),
-      apiUrl: readRequiredValue(environment, "RESEND_API_URL"),
+    mailjet: Object.freeze({
+      apiKey: readRequiredValue(environment, "MAILJET_API_KEY"),
+      apiSecret: readRequiredValue(environment, "MAILJET_SECRET_KEY"),
+      apiUrl: readRequiredValue(environment, "MAILJET_API_URL"),
       from: EMAIL_SENDER,
       recipient: EMAIL_RECIPIENT,
       subject: EMAIL_SUBJECT,

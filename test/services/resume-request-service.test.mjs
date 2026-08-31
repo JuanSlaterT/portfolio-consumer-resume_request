@@ -35,7 +35,7 @@ test("stores the request before sending the notification", async () => {
   });
 });
 
-test("retries the idempotent email when the request is already stored", async () => {
+test("retries the notification when the request is already stored", async () => {
   let emailCalls = 0;
   const service = new ResumeRequestService({
     resumeRequestRepository: {

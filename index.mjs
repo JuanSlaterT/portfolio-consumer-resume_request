@@ -1,7 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 
 import { DynamoDbResumeRequestClient } from "./src/clients/aws/dynamodb-resume-request-client.mjs";
-import { ResendEmailClient } from "./src/clients/resend/resend-email-client.mjs";
+import { MailjetEmailClient } from "./src/clients/mailjet/mailjet-email-client.mjs";
 import { loadConfig } from "./src/config/environment.mjs";
 import { createResumeRequestHandler } from "./src/handlers/resume-request-handler.mjs";
 import { ResumeRequestService } from "./src/services/resume-request-service.mjs";
@@ -13,7 +13,7 @@ const resumeRequestRepository = new DynamoDbResumeRequestClient({
   tableName: config.dynamodb.tableName,
 });
 
-const emailClient = new ResendEmailClient(config.resend);
+const emailClient = new MailjetEmailClient(config.mailjet);
 
 const resumeRequestService = new ResumeRequestService({
   resumeRequestRepository,

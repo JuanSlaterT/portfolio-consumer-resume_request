@@ -3,7 +3,7 @@
 [English](README.md) | Español
 
 Lambda de AWS que consume solicitudes desde SQS, las guarda en DynamoDB y envía
-una notificación mediante Resend después de persistir cada registro.
+una notificación mediante Mailjet después de persistir cada registro.
 
 ## Responsabilidades y límites
 
@@ -12,7 +12,7 @@ Este consumidor se encarga de:
 - deserializar los mensajes de solicitudes recibidos desde SQS;
 - guardar cada solicitud de forma condicional en DynamoDB;
 - generar en formato ISO-8601 la fecha de persistencia;
-- notificar al destinatario configurado mediante Resend;
+- notificar al destinatario configurado mediante Mailjet;
 - devolver fallos parciales para que SQS reintente solamente los registros fallidos.
 
 El productor es responsable del contrato y la validación del mensaje. La creación
@@ -27,7 +27,7 @@ la Lambda pertenecen a la infraestructura y están fuera de este repositorio.
 ├── src/
 │   ├── clients/
 │   │   ├── aws/                    # Integración DynamoDB y errores AWS
-│   │   └── resend/                 # Integración de correo y errores Resend
+│   │   └── mailjet/                # Integración de correo y errores Mailjet
 │   ├── config/                     # Configuración mediante variables de entorno
 │   ├── handlers/                   # Adaptador de Lambda para SQS
 │   ├── messages/                   # Contrato del mensaje del productor
@@ -63,15 +63,16 @@ recibe un nuevo `timestamp` ISO-8601 generado por la Lambda al persistir el íte
 | Variable | Requerida | Valor predeterminado | Sensible | Uso |
 | --- | --- | --- | --- | --- |
 | `DYNAMODB_TABLE_NAME` | Sí | Ninguno | No | Tabla DynamoDB destino |
-| `RESEND_API_KEY` | Sí | Ninguno | Sí | Autenticación de Resend |
-| `RESEND_API_URL` | Sí | Ninguno | Sí | Endpoint de correo de Resend |
+| `MAILJET_API_KEY` | Sí | Ninguno | Sí | API key pública de Mailjet |
+| `MAILJET_SECRET_KEY` | Sí | Ninguno | Sí | API key secreta de Mailjet |
+| `MAILJET_API_URL` | Sí | Ninguno | Sí | Endpoint de Send API de Mailjet |
 
-Guarda `RESEND_API_KEY` mediante configuración cifrada de la Lambda o un gestor
-de secretos. Nunca subas una clave real al repositorio.
+Guarda las credenciales de Mailjet y `MAILJET_API_URL` mediante configuración
+cifrada de la Lambda o un gestor de secretos. Nunca subas credenciales reales al
+repositorio.
 
-El remitente, destinatario y asunto de Resend son constantes de la aplicación
-definidas en `src/config/environment.mjs`. El endpoint se suministra mediante el
-entorno.
+El remitente, destinatario y asunto son constantes de la aplicación definidas en
+`src/config/environment.mjs`. El remitente debe estar validado en Mailjet.
 
 ## Verificación local
 
@@ -83,7 +84,7 @@ npm run check
 npm test
 ```
 
-Las pruebas usan dobles locales y no realizan llamadas a DynamoDB ni a Resend.
+Las pruebas usan dobles locales y no realizan llamadas a DynamoDB ni a Mailjet.
 
 ## Configuración de Lambda
 
