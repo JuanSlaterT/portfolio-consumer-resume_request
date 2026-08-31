@@ -1,5 +1,5 @@
 const EMAIL_SENDER = "noreply+arevalobernaljuan@gmail.com";
-const EMAIL_ADMIN_RECIPIENT = "arevalobernaljuan@gmail.com";
+const EMAIL_ADMIN_RECIPIENT = "portfolio+arevalobernaljuan@gmail.com";
 const EMAIL_SUBJECT = "Alguien descargó tu CV.";
 
 function readRequiredValue(environment, name) {

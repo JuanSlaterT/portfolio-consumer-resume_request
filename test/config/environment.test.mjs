@@ -15,8 +15,8 @@ test("loads required values and notification defaults", () => {
   assert.equal(config.mailjet.apiKey, "test-key");
   assert.equal(config.mailjet.apiSecret, "test-secret");
   assert.equal(config.mailjet.apiUrl, "https://api.mailjet.test/v3.1/send");
-  assert.equal(config.mailjet.from, "arevalobernaljuan@gmail.com");
-  assert.equal(config.mailjet.recipient, "arevalobernaljuan@gmail.com");
+  assert.equal(config.mailjet.from, "noreply+arevalobernaljuan@gmail.com");
+  assert.equal(config.mailjet.recipient, "portfolio+arevalobernaljuan@gmail.com");
   assert.equal(config.mailjet.subject, "Alguien descargó tu CV.");
 });
 
